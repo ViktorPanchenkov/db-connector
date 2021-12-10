@@ -5,5 +5,6 @@ package ua.test.db.enums;
  */
 public enum DbName {
     TST_METRICS,
-    TEST_RAIL;
+    TEST_RAIL,
+    POSTGRESSDB;
 }

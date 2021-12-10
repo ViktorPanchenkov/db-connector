@@ -16,6 +16,9 @@ public class PropertyLoader {
             case TEST_RAIL:
                 properyFileName = "testrail";
                 break;
+            case POSTGRESSDB:
+                properyFileName = "posgresql";
+                break;
             default:
                 properyFileName = "mysql";
                 break;

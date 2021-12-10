@@ -6,14 +6,12 @@ import org.slf4j.LoggerFactory;
 import ua.test.db.enums.DbName;
 import ua.test.db.utils.PropertyLoader;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 /**
  * Класс для подключения к бд.
  */
-class ConnectionFactoryImpl implements ConnectionFactoryBatchApproach {
+ public class ConnectionFactoryImpl implements ConnectionFactoryBatchApproach {
 
     static final Logger LOG = LoggerFactory.getLogger(ConnectionFactoryImpl.class);
     static final String CONNECTION_IS_CLOSED = "Connection is closed!";
@@ -27,9 +25,9 @@ class ConnectionFactoryImpl implements ConnectionFactoryBatchApproach {
     /**
      * Создает подключение к указанной БД.
      */
-    ConnectionFactoryImpl(DbName dbName) {
+    public ConnectionFactoryImpl(DbName dbName) {
         loadProperty(dbName);
-        this.connection = initConnection();
+        initConnection();
 
     }
 
@@ -61,23 +59,26 @@ class ConnectionFactoryImpl implements ConnectionFactoryBatchApproach {
         }
     }
 
-    private void loadProperty(final DbName dbName) {
+    public void loadProperty(final DbName dbName) {
         final PropertyLoader propertyLoader;
 
         if (dbName.equals(DbName.TEST_RAIL)) {
             propertyLoader = new PropertyLoader(DbName.TEST_RAIL);
-        } else {
+        } else if (dbName.equals(DbName.TST_METRICS)) {
             propertyLoader = new PropertyLoader(DbName.TST_METRICS);
+        } else {
+            propertyLoader = new PropertyLoader(DbName.POSTGRESSDB);
         }
 
-        this.dbDriverName = propertyLoader.load("deriver").toString();
+      //  this.dbDriverName = propertyLoader.load("deriver").toString();
         this.dbConnectionString = propertyLoader.load("connection_string").toString();
         this.user = propertyLoader.load("user").toString();
         this.password = propertyLoader.load("pass").toString();
 
     }
 
-    private Connection initConnection() {
+    /*
+    public Connection initConnection() {
         try {
             Class.forName(dbDriverName);
             return DriverManager.getConnection(dbConnectionString, this.user, this.password);
@@ -90,6 +91,37 @@ class ConnectionFactoryImpl implements ConnectionFactoryBatchApproach {
         }
 
         return null;
+    }
+*/
+    public void initConnection() {
+        try {
+            connection = DriverManager.getConnection(dbConnectionString, user, password);
+            System.out.println("Connection to  server");
+        } catch (SQLException throwables) {
+            System.err.println("Error in connection to  server");
+            throwables.printStackTrace();
+        }
+    }
+    public void prereareInsertStatement(String sql,String randomFirstName,String randomLastName,String randomEmail) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(sql);
+
+        statement.setString(1,randomFirstName);
+        statement.setString(2,randomLastName);
+        statement.setString(3,randomEmail);
+
+        statement.execute();
+    }
+    public void selectQuery(String selectQuery) throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(selectQuery);
+        while (resultSet.next()){
+            int id = resultSet.getInt("id");
+            String firstname = resultSet.getString("first_name");
+            String lastname = resultSet.getString("last_name");
+            String email = resultSet.getString("email");
+
+            System.out.printf("%d - %s -%s - %s\n", id,firstname,lastname,email);
+        }
     }
 
 }
